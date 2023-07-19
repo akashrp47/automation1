@@ -1,0 +1,65 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# Set up the WebDriver
+driver = webdriver.Chrome()  # Assuming you have Chrome WebDriver installed
+wait = WebDriverWait(driver, 10)
+
+# Open BookMyShow website
+driver.get("https://in.bookmyshow.com/explore/home/")
+
+# Select Bengaluru as the city
+city_select = wait.until(EC.element_to_be_clickable((By.ID, "inp_RegionSearch_top")))
+city_select.send_keys("Bengaluru")
+
+# Click on SignIn
+sign_in_button = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
+sign_in_button.click()
+
+# Click on Continue with Email
+continue_with_email = wait.until(EC.element_to_be_clickable((By.ID, "btn_continueEmail")))
+continue_with_email.click()
+
+# Enter email and click on continue
+email_input = wait.until(EC.presence_of_element_located((By.ID, "input-email-id")))
+email_input.send_keys("seleniumauto@yopmail.com")
+
+continue_button = wait.until(EC.element_to_be_clickable((By.ID, "btn-continue")))
+continue_button.click()
+
+# Open Yopmail.com in a new tab
+driver.execute_script("window.open('https://www.yopmail.com')")
+driver.switch_to.window(driver.window_handles[1])
+
+# Type in the Yopmail email address and access the inbox
+yopmail_email_input = wait.until(EC.presence_of_element_located((By.ID, "login")))
+yopmail_email_input.send_keys("seleniumauto")
+
+access_inbox_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#f > div > div.sbut > input.sbut2")))
+access_inbox_button.click()
+
+# Switch back to the BookMyShow tab
+driver.switch_to.window(driver.window_handles[0])
+
+# Fetch the latest email from BookMyShow and extract the OTP
+email_frame = wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, "ifmail")))
+latest_email = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#m1 > div:nth-child(2)")))
+otp = latest_email.text.split("OTP: ")[1]  # Assuming the OTP is in the email body
+
+# Switch back to the main frame
+driver.switch_to.default_content()
+
+# Enter the OTP on the Sign In page
+otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp-container")))
+otp_input.send_keys(otp)
+
+# Validate user is signed in
+welcome_message = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".userName")))
+assert welcome_message.text == "Hi, Guest"
+
+print("User signed in successfully!")
+
+# Close the WebDriver
+driver.quit()
